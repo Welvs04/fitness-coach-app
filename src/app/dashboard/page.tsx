@@ -4,9 +4,10 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
+import { type Message } from "@/components/ChatIntakeForm" // Import the Message type
 
 type Availability = { day_of_week: number; start_time: string; end_time: string; };
-type Booking = { id: number; client_name: string; client_email: string; booking_time: string; chat_history: any[]; };
+type Booking = { id: number; client_name: string; client_email: string; booking_time: string; chat_history: Message[]; }; // Corrected type
 
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -14,17 +15,16 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [summaries, setSummaries] = useState<{ [key: number]: string }>({}); // <-- NEW: State for summaries
-  const [isLoadingSummary, setIsLoadingSummary] = useState<number | null>(null); // <-- NEW: State for loading indicator
+  const [summaries, setSummaries] = useState<{ [key: number]: string }>({});
+  const [isLoadingSummary, setIsLoadingSummary] = useState<number | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
     const checkSessionAndFetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/');
-      } else {
+      if (!session) { router.push('/'); } 
+      else {
         setUser(session.user);
         const { data: availData, error: availError } = await supabase.from('availabilities').select('*').eq('coach_id', session.user.id);
         const { data: bookingData, error: bookingError } = await supabase.from('bookings').select('*').eq('coach_id', session.user.id).order('booking_time', { ascending: true });
@@ -42,9 +42,8 @@ export default function DashboardPage() {
     checkSessionAndFetchData();
   }, [router, supabase]);
 
-  const handleGenerateSummary = async (bookingId: any, chatHistory: any) => {
+  const handleGenerateSummary = async (bookingId: number, chatHistory: Message[]) => { // Corrected type
     setIsLoadingSummary(bookingId);
-    // We will create this API route in the next step
     const response = await fetch('/api/summarize', {
       method: 'POST',
       body: JSON.stringify({ chatHistory }),
@@ -54,7 +53,6 @@ export default function DashboardPage() {
     setIsLoadingSummary(null);
   };
 
-  // ... (handleAvailabilityChange, handleSaveAvailability, handleLogout functions remain the same)
   const handleAvailabilityChange = (dayIndex: number, field: 'start_time' | 'end_time', value: string) => {
     const updatedAvailabilities = [...availabilities];
     updatedAvailabilities[dayIndex] = { ...updatedAvailabilities[dayIndex], [field]: value };
@@ -76,10 +74,7 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-
-  if (!user || availabilities.length === 0) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+  if (!user) { return <div className="flex items-center justify-center min-h-screen">Loading...</div>; }
 
   return (
     <div className="flex justify-center min-h-screen bg-gray-100 p-4 sm:p-8">
@@ -89,8 +84,6 @@ export default function DashboardPage() {
           <button onClick={handleLogout} className="py-2 px-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700">Log Out</button>
         </div>
         <p className="mb-8">Welcome, <strong>{user.email}</strong></p>
-
-        {/* Upcoming Bookings Section */}
         <div className="mb-8">
           <h2 className="text-lg sm:text-xl font-semibold mb-4">Upcoming Bookings</h2>
           <div className="space-y-4 max-h-96 overflow-y-auto border rounded-lg p-4">
@@ -123,16 +116,11 @@ export default function DashboardPage() {
                   )}
                 </div>
               ))
-            ) : (
-              <p className="text-gray-500">You have no upcoming bookings.</p>
-            )}
+            ) : ( <p className="text-gray-500">You have no upcoming bookings.</p> )}
           </div>
         </div>
-
-        {/* Availability Section */}
         <div className="border-t pt-6">
           <h2 className="text-lg sm:text-xl font-semibold mb-4">Set Your Weekly Availability</h2>
-          {/* ... form code remains the same ... */}
           <div className="space-y-4">
             {days.map((day, index) => (
               <div key={day} className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 p-3 bg-gray-50 rounded-lg">
