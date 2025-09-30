@@ -8,29 +8,33 @@ import type { Message } from "@/components/ChatIntakeForm";
 
 type Availability = { day_of_week: number; start_time: string; end_time: string; };
 type TimeSlot = { time: Date; available: boolean; };
+// Specific type for the bookings data we fetch in this file
+type BookingTime = { booking_time: string; };
 
 const generateTimeSlots = (availabilities: Availability[], bookings: any[]): TimeSlot[] => {
     const slots: TimeSlot[] = [];
     const now = new Date();
     const bookedTimestamps = new Set(bookings.map(b => new Date(b.booking_time).getTime()));
+    
     for (let i = 0; i < 7; i++) {
         const day = new Date(now);
         day.setDate(now.getDate() + i);
         const dayOfWeek = day.getDay();
         const availability = availabilities.find(a => a.day_of_week === dayOfWeek);
+
         if (availability) {
             const [startHour, startMinute] = availability.start_time.split(':').map(Number);
             const [endHour, endMinute] = availability.end_time.split(':').map(Number);
-            let currentSlot = new Date(day);
-            currentSlot.setHours(startHour, startMinute, 0, 0);
-            const endSlot = new Date(day);
-            endSlot.setHours(endHour, endMinute, 0, 0);
-            while (currentSlot < endSlot) {
-                if (currentSlot > now) {
-                    const isBooked = bookedTimestamps.has(currentSlot.getTime());
-                    slots.push({ time: new Date(currentSlot), available: !isBooked });
-                }
-                currentSlot.setHours(currentSlot.getHours() + 1);
+
+            // This loop is corrected to avoid the linting error
+            for (let hour = startHour; hour < endHour; hour++) {
+              const slotTime = new Date(day);
+              slotTime.setHours(hour, startMinute, 0, 0);
+
+              if (slotTime > now) {
+                const isBooked = bookedTimestamps.has(slotTime.getTime());
+                slots.push({ time: slotTime, available: !isBooked });
+              }
             }
         }
     }
@@ -55,7 +59,8 @@ export default function BookingPage() {
             const { data: availabilities, error: availError } = await supabase.from('availabilities').select('*').eq('coach_id', coachId);
             const { data: bookings, error: bookError } = await supabase.from('bookings').select('booking_time').eq('coach_id', coachId);
             if (availError || bookError) { console.error(availError || bookError); setIsLoading(false); return; }
-            const slots = generateTimeSlots(availabilities, bookings);
+            // Ensure data is not null before passing
+            const slots = generateTimeSlots(availabilities || [], bookings || []);
             setTimeSlots(slots);
             setIsLoading(false);
         };
@@ -65,7 +70,7 @@ export default function BookingPage() {
     const handleIntakeComplete = (data: { details: { name: string; email: string; }; messages: Message[]; }) => {
         setClientName(data.details.name);
         setClientEmail(data.details.email);
-        setChatHistory(data.messages); // Save the chat history
+        setChatHistory(data.messages);
         setIsIntakeComplete(true);
     };
 

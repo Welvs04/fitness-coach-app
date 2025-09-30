@@ -42,7 +42,7 @@ export default function DashboardPage() {
     checkSessionAndFetchData();
   }, [router, supabase]);
 
-  const handleGenerateSummary = async (bookingId: number, chatHistory: any[]) => {
+  const handleGenerateSummary = async (bookingId: any, chatHistory: any) => {
     setIsLoadingSummary(bookingId);
     // We will create this API route in the next step
     const response = await fetch('/api/summarize', {
