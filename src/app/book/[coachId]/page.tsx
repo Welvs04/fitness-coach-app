@@ -8,10 +8,9 @@ import type { Message } from "@/components/ChatIntakeForm";
 
 type Availability = { day_of_week: number; start_time: string; end_time: string; };
 type TimeSlot = { time: Date; available: boolean; };
-// Specific type for the bookings data we fetch in this file
-type BookingTime = { booking_time: string; };
+type BookingTime = { booking_time: string; }; // Type for the fetched booking data
 
-const generateTimeSlots = (availabilities: Availability[], bookings: any[]): TimeSlot[] => {
+const generateTimeSlots = (availabilities: Availability[], bookings: BookingTime[]): TimeSlot[] => {
     const slots: TimeSlot[] = [];
     const now = new Date();
     const bookedTimestamps = new Set(bookings.map(b => new Date(b.booking_time).getTime()));
@@ -26,7 +25,6 @@ const generateTimeSlots = (availabilities: Availability[], bookings: any[]): Tim
             const [startHour, startMinute] = availability.start_time.split(':').map(Number);
             const [endHour, endMinute] = availability.end_time.split(':').map(Number);
 
-            // This loop is corrected to avoid the linting error
             for (let hour = startHour; hour < endHour; hour++) {
               const slotTime = new Date(day);
               slotTime.setHours(hour, startMinute, 0, 0);
@@ -59,7 +57,6 @@ export default function BookingPage() {
             const { data: availabilities, error: availError } = await supabase.from('availabilities').select('*').eq('coach_id', coachId);
             const { data: bookings, error: bookError } = await supabase.from('bookings').select('booking_time').eq('coach_id', coachId);
             if (availError || bookError) { console.error(availError || bookError); setIsLoading(false); return; }
-            // Ensure data is not null before passing
             const slots = generateTimeSlots(availabilities || [], bookings || []);
             setTimeSlots(slots);
             setIsLoading(false);

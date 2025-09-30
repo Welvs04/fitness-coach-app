@@ -10,25 +10,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault()
+    e.preventDefault()
 
-  // Create a Supabase client
-  const supabase = createClient()
+    const supabase = createClient()
 
-  // Attempt to sign in
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password,
-  })
+    // Corrected to remove unused 'data' variable
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
 
-  // Handle the result
-  if (error) {
-    alert('Error: ' + error.message)
-  } else {
-    router.push('/dashboard')
-    // We'll redirect to the dashboard here later
+    if (error) {
+      alert('Error: ' + error.message)
+    } else {
+      router.push('/dashboard')
+    }
   }
-}
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
