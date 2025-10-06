@@ -23,8 +23,8 @@ const vertex = createVertex({
 
 
 export async function POST(req: Request) {
-  const { messages }: { messages: CoreMessage[] } = await req.json();
-
+  const { messages }: { messages: any[] } = await req.json();
+  
   const systemPrompt = `You are a friendly and helpful AI assistant for a fitness coach. Your goal is to conduct a brief client intake.
   - Ask questions ONE AT A TIME.
   - Wait for the user's response before asking the next question.

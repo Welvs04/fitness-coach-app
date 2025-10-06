@@ -22,7 +22,7 @@ const vertex = createVertex({
 
 
 export async function POST(req: Request) {
-  const { chatHistory } = await req.json();
+  const { chatHistory }: { chatHistory: any } = await req.json();
 
   const systemPrompt = `Summarize the following client intake conversation for a fitness coach. Extract the client's name, their primary fitness goals, and any mentioned injuries or concerns. Present it as a brief, easy-to-read summary.`;
 
