@@ -11,7 +11,7 @@ const vertex = createVertex({
 export async function POST(req: Request) {
   const { messages }: { messages: CoreMessage[] } = await req.json();
 
-  const systemPrompt = `You are a friendly and helpful AI assistant for a fitness coach. Your goal is to conduct a brief client intake...`; // (Your prompt is correct)
+  const systemPrompt = `You are a friendly and helpful AI assistant...`; // Your prompt
 
   const result = await streamText({
     model: vertex('gemini-2.5-flash'),

@@ -12,7 +12,7 @@ const vertex = createVertex({
 export async function POST(req: Request) {
   const { chatHistory }: { chatHistory: CoreMessage[] } = await req.json();
 
-  const systemPrompt = `Summarize the following client intake conversation for a fitness coach...`; // (Your prompt is correct)
+  const systemPrompt = `Summarize the following client intake conversation...`; // Your prompt
 
   const { text } = await generateText({
     model: vertex('gemini-2.5-flash'),
