@@ -6,7 +6,7 @@ export const maxDuration = 30;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const vertex = createVertex({
-  location: 'europe-west1' // <-- Add this location back
+  location: 'europe-west1'
 } as any);
 
 export async function POST(req: Request) {
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   const systemPrompt = `Summarize the following client intake conversation for a fitness coach...`; // (Your prompt is correct)
 
   const { text } = await generateText({
-    model: vertex('gemini-2.5-flash'), // Using a valid model ID
+    model: vertex('gemini-2.5-flash'),
     system: systemPrompt,
     prompt: JSON.stringify(chatHistory),
   });
