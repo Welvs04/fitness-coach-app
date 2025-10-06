@@ -4,10 +4,21 @@ import { NextResponse } from 'next/server';
 
 export const maxDuration = 30;
 
+// --- NEW DIRECT AUTHENTICATION METHOD ---
+const serviceAccount = JSON.parse(
+  process.env.GOOGLE_VERTEX_SERVICE_ACCOUNT || '{}'
+);
+
 const vertex = createVertex({
-  project: process.env.GOOGLE_CLOUD_PROJECT_ID, // Add your Project ID to .env.local
+  credentials: {
+    client_email: serviceAccount.client_email,
+    private_key: serviceAccount.private_key,
+  },
+  project: serviceAccount.project_id,
   location: 'europe-west1',
-});
+} as any); // <-- Add 'as any' here
+// --- END NEW METHOD ---
+
 
 export async function POST(req: Request) {
   const { chatHistory } = await req.json();
@@ -15,7 +26,7 @@ export async function POST(req: Request) {
   const systemPrompt = `Summarize the following client intake conversation for a fitness coach. Extract the client's name, their primary fitness goals, and any mentioned injuries or concerns. Present it as a brief, easy-to-read summary.`;
 
   const { text } = await generateText({
-    model: vertex('gemini-2.0-flash'),
+    model: vertex('gemini-1.5-flash-latest'),
     system: systemPrompt,
     prompt: JSON.stringify(chatHistory),
   });

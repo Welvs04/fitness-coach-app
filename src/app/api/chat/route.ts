@@ -3,10 +3,23 @@ import { streamText, CoreMessage } from 'ai';
 
 export const maxDuration = 30;
 
-// This is the most important change. An empty createVertex() call
-// tells the code to automatically find the GOOGLE_VERTEX_SERVICE_ACCOUNT
-// variable that you set in your Vercel project settings.
-const vertex = createVertex({});
+// --- NEW DIRECT AUTHENTICATION METHOD ---
+// This will manually parse the service account JSON from the Vercel environment variable.
+const serviceAccount = JSON.parse(
+  process.env.GOOGLE_VERTEX_SERVICE_ACCOUNT || '{}'
+);
+
+// This will pass the parsed credentials directly to the createVertex function.
+const vertex = createVertex({
+  credentials: {
+    client_email: serviceAccount.client_email,
+    private_key: serviceAccount.private_key,
+  },
+  project: serviceAccount.project_id,
+  location: 'europe-west1',
+} as any); // <-- Add 'as any' here
+// --- END NEW METHOD ---
+
 
 export async function POST(req: Request) {
   const { messages }: { messages: CoreMessage[] } = await req.json();
@@ -23,8 +36,7 @@ export async function POST(req: Request) {
   The final response format is: INTAKE_COMPLETE::{"name": "USER_NAME", "email": "USER_EMAIL"}`;
 
   const result = await streamText({
-    // Use the correct ID for the latest Gemini 1.5 Flash model
-    model: vertex('gemini-2.5-flash'),
+    model: vertex('gemini-1.5-flash-latest'),
     system: systemPrompt,
     messages,
   });
