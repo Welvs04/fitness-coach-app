@@ -3,14 +3,10 @@ import { streamText, CoreMessage } from 'ai';
 
 export const maxDuration = 30;
 
-// Initialize the Vertex AI provider
-const vertex = createVertex({
-  // The SDK is smart and often finds your project ID automatically,
-  // but if you get an error, you may need to add it here.
-  // You can find your Project ID on the Google Cloud Console dashboard.
-  project: 'fitness-coach-ai-473319',
-  location: 'us-central1',
-});
+// This is the most important change. An empty createVertex() call
+// tells the code to automatically find the GOOGLE_VERTEX_SERVICE_ACCOUNT
+// variable that you set in your Vercel project settings.
+const vertex = createVertex({});
 
 export async function POST(req: Request) {
   const { messages }: { messages: CoreMessage[] } = await req.json();
@@ -27,9 +23,8 @@ export async function POST(req: Request) {
   The final response format is: INTAKE_COMPLETE::{"name": "USER_NAME", "email": "USER_EMAIL"}`;
 
   const result = await streamText({
-    // The model name for Vertex is also different.
-    // Let's use a powerful and common Gemini 1.5 Pro model.
-    model: vertex('gemini-2.0-flash'),
+    // Use the correct ID for the latest Gemini 1.5 Flash model
+    model: vertex('gemini-2.5-flash'),
     system: systemPrompt,
     messages,
   });
