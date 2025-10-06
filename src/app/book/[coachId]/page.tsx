@@ -23,7 +23,7 @@ const generateTimeSlots = (availabilities: Availability[], bookings: BookingTime
 
         if (availability) {
             const [startHour, startMinute] = availability.start_time.split(':').map(Number);
-            const [endHour, endMinute] = availability.end_time.split(':').map(Number);
+            const [endHour] = availability.end_time.split(':').map(Number);
 
             for (let hour = startHour; hour < endHour; hour++) {
               const slotTime = new Date(day);

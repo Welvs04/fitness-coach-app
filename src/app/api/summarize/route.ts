@@ -9,6 +9,7 @@ const serviceAccount = JSON.parse(
   process.env.GOOGLE_VERTEX_SERVICE_ACCOUNT || '{}'
 );
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const vertex = createVertex({
   credentials: {
     client_email: serviceAccount.client_email,

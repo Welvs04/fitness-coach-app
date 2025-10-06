@@ -10,6 +10,7 @@ const serviceAccount = JSON.parse(
 );
 
 // This will pass the parsed credentials directly to the createVertex function.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const vertex = createVertex({
   credentials: {
     client_email: serviceAccount.client_email,
