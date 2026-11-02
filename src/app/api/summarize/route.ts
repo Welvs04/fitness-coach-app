@@ -1,24 +1,30 @@
-import { createVertex } from '@ai-sdk/google-vertex';
-import { generateText, type CoreMessage } from 'ai';
+import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
+import { getModel, INTAKE_MARKER } from '@/lib/ai';
+import type { Message } from '@/components/ChatIntakeForm';
 
 export const maxDuration = 30;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const vertex = createVertex({
-  location: 'europe-west1'
-} as any);
+const systemPrompt = `You are helping a personal fitness coach prepare for a first session with a new client.
+Given the intake chat transcript, write a concise pre-session brief using exactly these headings:
+
+Goal: <one line>
+Experience: <one line>
+Injuries / limitations: <one line, or "None reported">
+Availability: <training days per week>
+Watch out for: <any red flags, motivation notes, or things to clarify — or "Nothing notable">
+Suggested opener: <one question the coach could start the session with>
+
+Only use information from the transcript. Do not invent details.`;
 
 export async function POST(req: Request) {
-  const { chatHistory }: { chatHistory: CoreMessage[] } = await req.json();
+  const { chatHistory }: { chatHistory: Message[] } = await req.json();
 
-  const systemPrompt = `Summarize the following client intake conversation...`; // Your prompt
+  const transcript = (chatHistory ?? [])
+    .map((m) => `${m.role === 'user' ? 'Client' : 'Assistant'}: ${m.content.split(INTAKE_MARKER)[0].trim()}`)
+    .join('\n');
 
-  const { text } = await generateText({
-    model: vertex('gemini-2.5-flash'),
-    system: systemPrompt,
-    prompt: JSON.stringify(chatHistory),
-  });
+  const { text } = await generateText({ model: getModel(), system: systemPrompt, prompt: transcript });
 
   return NextResponse.json({ summary: text });
 }

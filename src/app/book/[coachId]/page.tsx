@@ -50,12 +50,16 @@ export default function BookingPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isBooked, setIsBooked] = useState(false);
     const [isIntakeComplete, setIsIntakeComplete] = useState(false);
-    const supabase = createClient();
+    const [supabase] = useState(createClient);
 
     useEffect(() => {
         const fetchData = async () => {
             const { data: availabilities, error: availError } = await supabase.from('availabilities').select('*').eq('coach_id', coachId);
-            const { data: bookings, error: bookError } = await supabase.from('bookings').select('booking_time').eq('coach_id', coachId);
+            // Prefer the RPC from supabase/schema.sql: it returns only taken times, never client names/emails.
+            let { data: bookings, error: bookError } = await supabase.rpc('get_booked_times', { p_coach_id: coachId }) as { data: BookingTime[] | null; error: { message: string } | null };
+            if (bookError) {
+                ({ data: bookings, error: bookError } = await supabase.from('bookings').select('booking_time').eq('coach_id', coachId));
+            }
             if (availError || bookError) { console.error(availError || bookError); setIsLoading(false); return; }
             const slots = generateTimeSlots(availabilities || [], bookings || []);
             setTimeSlots(slots);
@@ -85,7 +89,7 @@ export default function BookingPage() {
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="p-8 bg-white rounded-lg shadow-md text-center">
                 <h1 className="text-2xl font-bold text-green-600 mb-4">Booking Confirmed!</h1>
-                <p>Thank you, {clientName}. You will receive a confirmation email shortly.</p>
+                <p>Thank you, {clientName}. You&apos;re booked for {selectedSlot?.toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' })}.</p>
             </div>
         </div>
     );
@@ -108,6 +112,9 @@ export default function BookingPage() {
                 {isIntakeComplete && (
                     <div className="mt-8">
                         <h2 className="text-xl font-semibold mb-4">Step 2: Select a Time</h2>
+                        {timeSlots.length === 0 && (
+                            <p className="text-gray-500 p-4 bg-gray-50 rounded-lg">No open slots in the next 7 days. Please check back soon.</p>
+                        )}
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-96 overflow-y-auto">
                             {timeSlots.map(({ time, available }) => (
                                 <button key={time.toISOString()} disabled={!available} onClick={() => setSelectedSlot(time)}
